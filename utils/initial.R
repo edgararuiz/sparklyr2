@@ -27,6 +27,8 @@ df_cached <- df_spark$cache()
 
 df_view <- df_cached$createTempView("spark_mtcars")
 
-spark$sql("Select * from spark_mtcars")
+sql_res <- spark$sql("Select * from spark_mtcars")
 
-spark$client$close()
+sql_res$show()
+
+#spark$client$close()
