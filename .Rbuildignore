@@ -1,2 +1,4 @@
 ^sparklyr2\.Rproj$
 ^\.Rproj\.user$
+^utils$
+^LICENSE\.md$

@@ -2,12 +2,9 @@
 % Please edit documentation in R/connection.R
 \name{spark_connect}
 \alias{spark_connect}
-\alias{spark_disconnect}
 \title{Connects to a Spark environment}
 \usage{
 spark_connect(host)
-
-spark_disconnect(sc)
 }
 \arguments{
 \item{host}{The URL or path for the master, or the remote, parameter}
