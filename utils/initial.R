@@ -46,17 +46,23 @@ run_sql <- dplyr_test %>%
 
 run_sql$toPandas()
 
-#spark$client$close()
+# spark$client$close()
 
 
-library(reticulate)
 library(dplyr)
+library(reticulate)
+library(dbplyr)
 devtools::load_all()
 use_python("~/.pyenv/versions/3.9.13/bin/python3.9")
 use_virtualenv("sparklyr2")
 
 sc <- spark_connect(host = "sc://localhost")
 
+str(sc)
+
 tbl_iris <- copy_to(sc, iris)
 
-sc$sql("select * from iris")
+
+tbl(sc, "iris")
+
+sc$python$client$close
