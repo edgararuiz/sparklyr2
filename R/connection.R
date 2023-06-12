@@ -31,3 +31,23 @@ spark_disconnect <- function(sc) {
   sc$python$client$close()
 }
 
+#' @export
+print.sparklyr2_connect <- function(x) {
+  cli_div(theme = cli_colors())
+  cli_h3("{.val2 sparklyr2} - {.val1 Spark Connect} -")
+  print_connection(x)
+}
+
+print_connection <- function(x) {
+  cli_div(theme = cli_colors())
+  x$spark <- sc$python$version
+  names_x <- names(x)
+  names_p <- names_x[names_x != "con"]
+  for(i in seq_along(names_p)) {
+    cp <- names_p[i]
+    val_x <- x[[cp]]
+    if(val_x != "") {
+      cli_li("{.val0 {cp}:} {.val1 {val_x}}")
+    }
+  }
+}
