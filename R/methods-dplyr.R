@@ -8,7 +8,7 @@ copy_to.sparklyr2_connection <- function(dest,
                                          ) {
   df_copy <- dest$python$createDataFrame(r_to_py(df))
   df_copy$createTempView(name)
-  df_copy
+  tbl(src = dest, from = name)
   #TODO: implement override
 }
 
@@ -16,10 +16,13 @@ copy_to.sparklyr2_connection <- function(dest,
 #' @export
 tbl.sparklyr2_connection <- function(src, from, ...) {
   pyspark_obj <- src$python$table(from)
-  #src$con <- simulate_hive()
   vars <- pyspark_obj$columns
-  out <- tbl_sql("sparklyr2", src, as.sql(from, con = src$con), vars = vars)
-  out
+  tbl_sql(
+    subclass = "sparklyr2",
+    src = src,
+    from = as.sql(from, con = src$con),
+    vars = vars
+    )
 }
 
 #' @importFrom dplyr collect
