@@ -10,9 +10,11 @@ library(reticulate)
 #   )
 # )
 
+library(reticulate)
 
 use_python("~/.pyenv/versions/3.9.13/bin/python3.9")
 use_virtualenv("sparklyr2")
+
 
 pyspark <- import("pyspark")
 pyspark_sql <- pyspark$sql
@@ -45,3 +47,16 @@ run_sql <- dplyr_test %>%
 run_sql$toPandas()
 
 #spark$client$close()
+
+
+library(reticulate)
+library(dplyr)
+devtools::load_all()
+use_python("~/.pyenv/versions/3.9.13/bin/python3.9")
+use_virtualenv("sparklyr2")
+
+sc <- spark_connect(host = "sc://localhost")
+
+tbl_iris <- copy_to(sc, iris)
+
+sc$sql("select * from iris")
