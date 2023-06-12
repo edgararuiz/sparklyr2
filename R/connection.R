@@ -4,10 +4,10 @@
 spark_connect <- function(host) {
   master <- ""
   remote <- ""
-  pyspark <- import("pyspark")
-  pyspark_sql <- pyspark$sql
   # Infers connection type by reading the value of host
   if(grepl("sc://", host)) {
+    pyspark <- import("pyspark")
+    pyspark_sql <- pyspark$sql
     remote <- pyspark_sql$SparkSession$builder$remote(host)
     python <- remote$getOrCreate()
     con_class <- "sparklyr2_connect"
@@ -25,4 +25,9 @@ spark_connect <- function(host) {
   )
 }
 
+#' @rdname spark_connect
+#' @export
+spark_disconnect <- function(sc) {
+  sc$python$client$close()
+}
 

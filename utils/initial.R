@@ -12,7 +12,7 @@ library(reticulate)
 
 library(reticulate)
 
-use_python("~/.pyenv/versions/3.9.13/bin/python3.9")
+#use_python("~/.pyenv/versions/3.9.13/bin/python3.9")
 use_virtualenv("sparklyr2")
 
 
@@ -53,16 +53,21 @@ library(dplyr)
 library(reticulate)
 library(dbplyr)
 devtools::load_all()
-use_python("~/.pyenv/versions/3.9.13/bin/python3.9")
+#use_python("~/.pyenv/versions/3.9.13/bin/python3.9")
 use_virtualenv("sparklyr2")
 
 sc <- spark_connect(host = "sc://localhost")
 
-str(sc)
 
-tbl_iris <- copy_to(sc, iris)
+tbl_mtcars <- copy_to(sc, mtcars)
 
 
-tbl(sc, "iris")
+spark_mtcars <- tbl(sc, "mtcars")
 
-sc$python$client$close
+spark_mtcars %>%
+  group_by(am) %>%
+  summarise(median_mpg = median(mpg, na.rm = TRUE))
+
+
+spark_disconnect(sc)
+
