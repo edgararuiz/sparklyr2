@@ -47,6 +47,43 @@ rstudio_objects <- function(sc,
   out
 }
 
+rstudio_columns <- function(sc, table = NULL, view = NULL,
+                            catalog = NULL, schema = NULL
+                            ) {
+  if(is.null(catalog)) catalog <- sc$python$catalog$currentCatalog()
+  if(is.null(schema)) schema <- sc$python$catalog$currentDatabase()
+
+  tbl_df <- tbl(sc, in_catalog(catalog, schema, table))
+
+  tbl_sample <- collect(head(tbl_df))
+
+  tbl_info <- map_chr(tbl_sample, ~ paste0(rs_type(.x), " ", rs_vals(.x)))
+
+  data.frame(
+    name = names(tbl_info),
+    type = tbl_info
+  )
+
+}
+
+rs_type <- function(x) {
+  class <- class(x)[[1]]
+  if(class == "integer") class <- "int"
+  if(class == "numeric") class <- "num"
+  if(class == "POSIXct") class <- "dttm"
+  class
+}
+
+rs_vals <- function(x) {
+  ln <- 30
+  x <- paste0(x, collapse = " ")
+  if(nchar(x) > ln) {
+    x <- substr(x, 1, (ln-3))
+    x <- paste0(x, "...")
+  }
+  x
+}
+
 rstudio_open_connection <- function(sc) {
 
   display_name <- "Spark"
@@ -72,6 +109,9 @@ rstudio_open_connection <- function(sc) {
   }
   contract$disconnect <- function() {
     spark_disconnect(sc)
+  }
+  contract$listColumns <- function(...) {
+    rstudio_columns(sc, ...)
   }
   rscontract_open(contract)
 }
