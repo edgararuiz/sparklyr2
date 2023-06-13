@@ -1,4 +1,4 @@
-#' @importFrom reticulate import r_to_py
+#' @importFrom reticulate import r_to_py virtualenv_list use_virtualenv
 #' @importFrom purrr map map_chr map_lgl flatten
 #' @importFrom methods new
 #' @importFrom utils head

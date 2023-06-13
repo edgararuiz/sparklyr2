@@ -22,6 +22,10 @@ spark_connect <- function(host,
     }
   }
 
+  if("sparklyr2" %in% virtualenv_list()) {
+    try(use_virtualenv("sparklyr2"), silent = TRUE)
+  }
+
   if (method == "spark_connect") {
     pyspark <- import("pyspark")
     pyspark_sql <- pyspark$sql

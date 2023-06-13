@@ -139,7 +139,7 @@ rstudio_open_connection <- function(sc) {
     code <- glue("(\n host = \"{sc$remote}\", \n cluster_id = \"{sc$cluster_id}\"\n)")
   }
 
-  code <- paste0("library(sparklyr2)\nspark_connect", code)
+  code <- paste0("library(sparklyr2)\nsc <- spark_connect", code)
 
   contract <- rscontract_ide()
   contract$connectionObject <- sc
@@ -147,7 +147,6 @@ rstudio_open_connection <- function(sc) {
   contract$type <- "Spark"
   contract$displayName <- display_name
   contract$connectCode <- code
-  contract$icon
   contract$previewObject <- function(rowLimit, ...) {
     rstudio_preview(sc, rowLimit, ...)
   }
