@@ -13,7 +13,7 @@ spark_connect <- function(host,
   master <- ""
   remote <- ""
 
-  if(method == "auto") {
+  if(method[[1]] == "auto") {
     if(is.null(cluster_id) & grepl("sc://", host)) {
       method <- "spark_connect"
     }
@@ -47,6 +47,8 @@ spark_connect <- function(host,
     list(
       master = master,
       remote = remote,
+      cluster_id = cluster_id,
+      method = method,
       python = python,
       con = simulate_hive()
     ),
@@ -61,6 +63,7 @@ spark_connect <- function(host,
 #' @export
 spark_disconnect <- function(sc) {
   sc$python$client$close()
+  rscontract_close(sc$remote, type = "Spark")
 }
 
 #' @export
@@ -82,9 +85,11 @@ print_connection <- function(x) {
   x$spark <- x$python$version
   names_x <- names(x)
   names_p <- names_x[names_x != "con"]
+  names_p <- names_p[names_p != "method"]
   for (i in seq_along(names_p)) {
     cp <- names_p[i]
     val_x <- x[[cp]]
+    if(is.null(val_x)) val_x <- ""
     if (val_x != "") {
       cli_li("{.val0 {cp}:} {.val1 {val_x}}")
     }
