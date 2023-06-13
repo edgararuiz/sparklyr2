@@ -14,8 +14,10 @@ BugReports: https://github.com/edgararuiz/sparklyr2/issues
 Imports: 
     cli,
     DBI,
-    dbplyr,
-    dplyr,
     glue,
+    dplyr,
+    purrr,
+    dbplyr,
     methods,
-    reticulate
+    reticulate,
+    rscontract

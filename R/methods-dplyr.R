@@ -16,6 +16,7 @@ copy_to.sparklyr2_connection <- function(dest,
   }
   df_copy <- dest$python$createDataFrame(r_to_py(df))
   df_copy$createTempView(name)
+  rstudio_update_connection(sc)
   tbl(src = dest, from = name)
 }
 

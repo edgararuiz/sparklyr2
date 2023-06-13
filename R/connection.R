@@ -14,7 +14,7 @@ spark_connect <- function(host) {
     remote <- host
   }
 
-  structure(
+  sc <- structure(
     list(
       master = master,
       remote = remote,
@@ -23,6 +23,8 @@ spark_connect <- function(host) {
     ),
     class = c("sparklyr2_connection", con_class, "DBIConnection")
   )
+  rstudio_open_connection(sc)
+  sc
 }
 
 #' Disconnects from a Spark environment

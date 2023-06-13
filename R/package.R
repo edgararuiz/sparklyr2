@@ -1,7 +1,9 @@
 #' @importFrom reticulate import r_to_py
+#' @importFrom purrr map map_chr flatten
 #' @importFrom methods new
+#' @import rscontract
 #' @import dbplyr
-#' @import DBI
 #' @import glue
+#' @import DBI
 #' @import cli
-NULL
+sparklyr2_env <- new.env()
