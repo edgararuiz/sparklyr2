@@ -4,10 +4,22 @@
 \alias{spark_connect}
 \title{Connects to a Spark environment}
 \usage{
-spark_connect(host)
+spark_connect(
+  host,
+  token = Sys.getenv("DATABRICKS_TOKEN"),
+  cluster_id = NULL,
+  method = c("auto", "spark_connect", "db_connect")
+)
 }
 \arguments{
 \item{host}{The URL or path for the master, or the remote, parameter}
+
+\item{token}{Credentials token. Required for Databricks Connect.}
+
+\item{cluster_id}{Cluster ID to connect to. Required for Databricks Connect.}
+
+\item{method}{Method to be used for connecting. "auto" will attempt to infer
+what kind of method to use based on the provided arguments.}
 }
 \description{
 Connects to a Spark environment

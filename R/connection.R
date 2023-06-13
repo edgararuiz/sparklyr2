@@ -1,16 +1,45 @@
 #' Connects to a Spark environment
 #' @param host The URL or path for the master, or the remote, parameter
+#' @param token Credentials token. Required for Databricks Connect.
+#' @param cluster_id Cluster ID to connect to. Required for Databricks Connect.
+#' @param method Method to be used for connecting. "auto" will attempt to infer
+#' what kind of method to use based on the provided arguments.
 #' @export
-spark_connect <- function(host) {
+spark_connect <- function(host,
+                          token = Sys.getenv("DATABRICKS_TOKEN"),
+                          cluster_id = NULL,
+                          method = c("auto", "spark_connect", "db_connect")
+                          ) {
   master <- ""
   remote <- ""
-  # Infers connection type by reading the value of host
-  if (grepl("sc://", host)) {
+
+  if(method == "auto") {
+    if(is.null(cluster_id) & grepl("sc://", host)) {
+      method <- "spark_connect"
+    }
+    if(!is.null(cluster_id)) {
+      method <- "db_connect"
+    }
+  }
+
+  if (method == "spark_connect") {
     pyspark <- import("pyspark")
     pyspark_sql <- pyspark$sql
     remote <- pyspark_sql$SparkSession$builder$remote(host)
     python <- remote$getOrCreate()
     con_class <- "sparklyr2_connect"
+    remote <- host
+  }
+
+  if(method == "db_connect") {
+    db <- import("databricks.connect")
+    remote <- db$DatabricksSession$builder$remote(
+      host = host,
+      token = token,
+      cluster_id = cluster_id
+    )
+    python <- remote$getOrCreate()
+    con_class <- "sparklyr2_db"
     remote <- host
   }
 
@@ -38,6 +67,13 @@ spark_disconnect <- function(sc) {
 print.sparklyr2_connect <- function(x, ...) {
   cli_div(theme = cli_colors())
   cli_h3("{.val2 sparklyr2} - {.val1 Spark Connect} -")
+  print_connection(x)
+}
+
+#' @export
+print.sparklyr2_db <- function(x, ...) {
+  cli_div(theme = cli_colors())
+  cli_h3("{.val2 sparklyr2} - {.val1 Databricks Connect} -")
   print_connection(x)
 }
 

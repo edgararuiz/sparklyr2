@@ -3,6 +3,7 @@
 S3method(collect,tbl_sparklyr2)
 S3method(copy_to,sparklyr2_connection)
 S3method(print,sparklyr2_connect)
+S3method(print,sparklyr2_db)
 S3method(tbl,sparklyr2_connection)
 export(spark_connect)
 export(spark_disconnect)

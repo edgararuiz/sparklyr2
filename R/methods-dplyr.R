@@ -16,19 +16,20 @@ copy_to.sparklyr2_connection <- function(dest,
   }
   df_copy <- dest$python$createDataFrame(r_to_py(df))
   df_copy$createTempView(name)
-  rstudio_update_connection(sc)
+  rstudio_update_connection(dest)
   tbl(src = dest, from = name)
 }
 
 #' @importFrom dplyr tbl
 #' @export
 tbl.sparklyr2_connection <- function(src, from, ...) {
-  pyspark_obj <- src$python$table(from)
+  sql_from <- as.sql(from, con = src$con)
+  pyspark_obj <- src$python$table(sql_from)
   vars <- pyspark_obj$columns
   tbl_sql(
     subclass = "sparklyr2",
     src = src,
-    from = as.sql(from, con = src$con),
+    from = sql_from,
     vars = vars
   )
 }
