@@ -1,5 +1,5 @@
 #' @importFrom reticulate import r_to_py
-#' @importFrom purrr map map_chr flatten
+#' @importFrom purrr map map_chr map_lgl flatten
 #' @importFrom methods new
 #' @importFrom utils head
 #' @import rscontract

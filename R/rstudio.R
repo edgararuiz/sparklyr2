@@ -7,12 +7,22 @@ rstudio_objects <- function(sc,
   df_catalogs <- data.frame()
   df_databases <- data.frame()
   df_tables <- data.frame()
+  df_cat <- data.frame()
 
   sc_catalog <- sc$python$catalog
   current_catalog <- sc_catalog$currentCatalog()
   if(is.null(catalog)) {
+
     sc_catalog$setCurrentCatalog("spark_catalog")
     tables <- sc_catalog$listTables(dbName = "default")
+    if(length(tables) > 0) {
+      temps <- tables[map_lgl(tables, ~.x$isTemporary)]
+      if(length(temps) > 0) {
+        df_tables <- data.frame(name = map_chr(temps, ~ .x$name))
+        df_tables$type = "table"
+      }
+      df_tables <- rbind(df_tables, df_cat)
+    }
 
     catalogs <- sc_catalog$listCatalogs()
     if(length(catalogs) > 0) {
@@ -20,10 +30,6 @@ rstudio_objects <- function(sc,
       df_catalogs$type <- "catalog"
     }
 
-    if(length(tables) > 0) {
-      df_tables <- data.frame(name = map_chr(tables, ~ .x$name))
-      df_tables$type = "table"
-    }
     out <- rbind(df_tables, df_catalogs)
   } else {
     sc_catalog$setCurrentCatalog(catalog)
@@ -35,8 +41,19 @@ rstudio_objects <- function(sc,
     } else {
       tables <- sc_catalog$listTables(dbName = schema)
       if(length(tables) > 0) {
-        df_tables <- data.frame(name = map_chr(tables, ~ .x$name))
-        df_tables$type = "table"
+
+        catalogs <- map(tables, ~.x$catalog == catalog)
+        catalogs <- map_lgl(catalogs, ~ifelse(length(.x), .x, FALSE))
+        tables <- tables[catalogs]
+
+        schemas <- map(tables, ~.x$namespace == schema)
+        schemas <- map_lgl(schemas, ~ifelse(length(.x), .x, FALSE))
+        tables <- tables[schemas]
+
+        if(length(tables) > 0) {
+          df_tables <- data.frame(name = map_chr(tables, ~ .x$name))
+          df_tables$type = "table"
+        }
       }
       out <- df_tables
     }
@@ -47,13 +64,13 @@ rstudio_objects <- function(sc,
   out
 }
 
-rstudio_columns <- function(sc, table = NULL, view = NULL,
-                            catalog = NULL, schema = NULL
+rstudio_columns <- function(sc,
+                            table = NULL,
+                            view = NULL,
+                            catalog = NULL,
+                            schema = NULL
                             ) {
-  if(is.null(catalog)) catalog <- sc$python$catalog$currentCatalog()
-  if(is.null(schema)) schema <- sc$python$catalog$currentDatabase()
-
-  tbl_df <- tbl(sc, in_catalog(catalog, schema, table))
+  tbl_df <- rs_get_table(sc, catalog, schema, table)
 
   tbl_sample <- collect(head(tbl_df))
 
@@ -66,11 +83,37 @@ rstudio_columns <- function(sc, table = NULL, view = NULL,
 
 }
 
+rstudio_preview <- function(sc,
+                            rowLimit,
+                            table = NULL,
+                            view = NULL,
+                            catalog = NULL,
+                            schema = NULL
+                            ) {
+  tbl_df <- rs_get_table(sc, catalog, schema, table)
+  collect(head(tbl_df, rowLimit))
+}
+
+rs_get_table <- function(sc, catalog, schema, table) {
+  if(is.null(catalog)) {
+    catalog <- sc$python$catalog$currentCatalog()
+  }
+  if(is.null(schema)) {
+    schema <- sc$python$catalog$currentDatabase()
+  }
+  x <- in_catalog(catalog, schema, table)
+  if(!sc$python$catalog$tableExists(as.sql(x, sc$con))) {
+    x <- table
+  }
+  tbl(sc, x)
+}
+
 rs_type <- function(x) {
   class <- class(x)[[1]]
   if(class == "integer") class <- "int"
   if(class == "numeric") class <- "num"
   if(class == "POSIXct") class <- "dttm"
+  if(class == "character") class <- "chr"
   class
 }
 
@@ -104,6 +147,10 @@ rstudio_open_connection <- function(sc) {
   contract$type <- "Spark"
   contract$displayName <- display_name
   contract$connectCode <- code
+  contract$icon
+  contract$previewObject <- function(rowLimit, ...) {
+    rstudio_preview(sc, rowLimit, ...)
+  }
   contract$listObjects <- function(...) {
     rstudio_objects(sc, ...)
   }
