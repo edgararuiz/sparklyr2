@@ -8,7 +8,8 @@ spark_connect(
   host,
   token = Sys.getenv("DATABRICKS_TOKEN"),
   cluster_id = NULL,
-  method = c("auto", "spark_connect", "db_connect")
+  method = c("auto", "spark_connect", "db_connect"),
+  virtualenv_name = "sparklyr2"
 )
 }
 \arguments{
@@ -20,6 +21,9 @@ spark_connect(
 
 \item{method}{Method to be used for connecting. "auto" will attempt to infer
 what kind of method to use based on the provided arguments.}
+
+\item{virtualenv_name}{The name of the Virtual Environment to use to
+install the python libraries. Defaults to "sparklyr2".}
 }
 \description{
 Connects to a Spark environment

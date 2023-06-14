@@ -4,11 +4,14 @@
 #' @param cluster_id Cluster ID to connect to. Required for Databricks Connect.
 #' @param method Method to be used for connecting. "auto" will attempt to infer
 #' what kind of method to use based on the provided arguments.
+#' @param virtualenv_name The name of the Virtual Environment to use to
+#' install the python libraries. Defaults to "sparklyr2".
 #' @export
 spark_connect <- function(host,
                           token = Sys.getenv("DATABRICKS_TOKEN"),
                           cluster_id = NULL,
-                          method = c("auto", "spark_connect", "db_connect")
+                          method = c("auto", "spark_connect", "db_connect"),
+                          virtualenv_name = "sparklyr2"
                           ) {
   master <- ""
   remote <- ""
@@ -22,8 +25,13 @@ spark_connect <- function(host,
     }
   }
 
-  if("sparklyr2" %in% virtualenv_list()) {
-    try(use_virtualenv("sparklyr2"), silent = TRUE)
+  if(virtualenv_name %in% virtualenv_list()) {
+    try(use_virtualenv(virtualenv_name), silent = TRUE)
+  } else {
+    cli_abort(paste0(
+      "The '{virtualenv_name}' virtual environment was not found. To install use:",
+      " {.run sparklyr2::install_sparklyr2(virtualenv_name = \"{virtualenv_name}\")}"
+    ))
   }
 
   if (method == "spark_connect") {
@@ -68,6 +76,37 @@ spark_connect <- function(host,
 spark_disconnect <- function(sc) {
   sc$python$client$close()
   rscontract_close(sc$remote, type = "Spark")
+}
+
+#' Installs python dependencies
+#' @param python_version The version of python to install if not available
+#' @param virtualenv_name The name of the Virtual Environment to use to
+#' install the python libraries. Defaults to "sparklyr2".
+#' @export
+install_sparklyr2 <- function(python_version = NULL,
+                              virtualenv_name = "sparklyr2"
+                              ) {
+
+  if(!py_available()) {
+    if(is.null(python_version)) {
+      python_path <- install_python()
+    } else {
+      python_path <- install_python(version = python_version)
+    }
+    use_python(python = python_path)
+  }
+
+  if(!(virtualenv_name %in% virtualenv_list())) {
+    virtualenv_create(virtualenv_name, package = NULL)
+  }
+
+  use_virtualenv(virtualenv_name)
+
+  py_install(
+    envname = virtualenv_name,
+    packages = sparklyr2_env$vars$python_deps
+    )
+
 }
 
 #' @export
