@@ -16,3 +16,4 @@ sparklyr2_env$vars$python_deps <- c(
   "pyspark", "pandas", "PyArrow", "grpcio", "google-api-python-client",
   "grpcio_status", "databricks-connect"
 )
+sparklyr2_env$cons <- list()
