@@ -5,13 +5,13 @@ copy_to.sparklyr2_connection <- function(dest,
                                          name = deparse(substitute(df)),
                                          overwrite = FALSE,
                                          ...) {
-  if(dest$python$catalog$tableExists(name)) {
-    if(overwrite) {
+  if (dest$python$catalog$tableExists(name)) {
+    if (overwrite) {
       dest$python$catalog$dropTempView(name)
     } else {
       cli_abort(
         "Temp table {name} already exists, use `overwrite = TRUE` to replace"
-        )
+      )
     }
   }
   df_copy <- dest$python$createDataFrame(r_to_py(df))

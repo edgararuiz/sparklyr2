@@ -11,16 +11,15 @@ spark_connect <- function(host,
                           token = Sys.getenv("DATABRICKS_TOKEN"),
                           cluster_id = NULL,
                           method = c("auto", "spark_connect", "db_connect"),
-                          virtualenv_name = "sparklyr2"
-                          ) {
+                          virtualenv_name = "sparklyr2") {
   master <- ""
   remote <- ""
 
-  if(method[[1]] == "auto") {
-    if(is.null(cluster_id) & grepl("sc://", host)) {
+  if (method[[1]] == "auto") {
+    if (is.null(cluster_id) & grepl("sc://", host)) {
       method <- "spark_connect"
     }
-    if(!is.null(cluster_id)) {
+    if (!is.null(cluster_id)) {
       method <- "db_connect"
     }
   }
@@ -34,7 +33,7 @@ spark_connect <- function(host,
     remote <- host
   }
 
-  if(method == "db_connect") {
+  if (method == "db_connect") {
     db <- import_check("databricks.connect", virtualenv_name)
     remote <- db$DatabricksSession$builder$remote(
       host = host,
@@ -75,11 +74,9 @@ spark_disconnect <- function(sc) {
 #' install the python libraries. Defaults to "sparklyr2".
 #' @export
 install_sparklyr2 <- function(python_version = NULL,
-                              virtualenv_name = "sparklyr2"
-                              ) {
-
-  if(!py_available()) {
-    if(is.null(python_version)) {
+                              virtualenv_name = "sparklyr2") {
+  if (!py_available()) {
+    if (is.null(python_version)) {
       python_path <- install_python()
     } else {
       python_path <- install_python(version = python_version)
@@ -87,7 +84,7 @@ install_sparklyr2 <- function(python_version = NULL,
     use_python(python = python_path)
   }
 
-  if(!(virtualenv_name %in% virtualenv_list())) {
+  if (!(virtualenv_name %in% virtualenv_list())) {
     virtualenv_create(virtualenv_name, package = NULL)
   }
 
@@ -96,8 +93,7 @@ install_sparklyr2 <- function(python_version = NULL,
   py_install(
     envname = virtualenv_name,
     packages = sparklyr2_env$vars$python_deps
-    )
-
+  )
 }
 
 #' @export
@@ -123,7 +119,7 @@ print_connection <- function(x) {
   for (i in seq_along(names_p)) {
     cp <- names_p[i]
     val_x <- x[[cp]]
-    if(is.null(val_x)) val_x <- ""
+    if (is.null(val_x)) val_x <- ""
     if (val_x != "") {
       cli_li("{.val0 {cp}:} {.val1 {val_x}}")
     }
@@ -131,36 +127,35 @@ print_connection <- function(x) {
 }
 
 import_check <- function(x, virtualenv_name) {
-
   env_found <- virtualenv_name %in% virtualenv_list()
 
   env_loaded <- NA
 
-  if(py_available()) {
-    if(env_found) {
-      if(virtualenv_python(virtualenv_name) == py_exe()) {
+  if (py_available()) {
+    if (env_found) {
+      if (virtualenv_python(virtualenv_name) == py_exe()) {
         env_loaded <- TRUE
       } else {
         env_loaded <- FALSE
       }
     }
   } else {
-    if(env_found) {
+    if (env_found) {
       try(use_virtualenv(virtualenv_name), silent = TRUE)
     }
   }
 
   out <- try(import(x), silent = TRUE)
 
-  if(is.na(env_loaded)) {
+  if (is.na(env_loaded)) {
     env_loaded <- virtualenv_python(virtualenv_name) == py_exe()
-    }
+  }
 
   inst <- " {.run sparklyr2::install_sparklyr2(virtualenv_name = \"{virtualenv_name}\")}"
 
-  if(inherits(out, "try-error")) {
-    if(env_found) {
-      if(env_loaded) {
+  if (inherits(out, "try-error")) {
+    if (env_found) {
+      if (env_loaded) {
         # found & loaded
         cli_abort(paste(
           "Pyhon library '{x}' is not available in the '{virtualenv_name}'",
@@ -183,14 +178,15 @@ import_check <- function(x, virtualenv_name) {
       ))
     }
   } else {
-    if(is.null(sparklyr2_env$vars$python_init)) {
-      if(env_loaded) {
+    if (is.null(sparklyr2_env$vars$python_init)) {
+      if (env_loaded) {
         msg <- "Using the '{virtualenv_name}' virtual environment ({py_exe()})"
         cli_alert_success(msg)
       } else {
-        msg <- paste("Not using the '{virtualenv_name}' virtual environment",
-                     "for python. The current path is: {py_exe()}"
-                     )
+        msg <- paste(
+          "Not using the '{virtualenv_name}' virtual environment",
+          "for python. The current path is: {py_exe()}"
+        )
         cli_alert_danger(msg)
       }
       sparklyr2_env$vars$python_init <- 1
