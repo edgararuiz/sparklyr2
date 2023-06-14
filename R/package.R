@@ -2,7 +2,7 @@
 #' @importFrom reticulate use_virtualenv virtualenv_create py_exe use_python
 #' @importFrom reticulate import r_to_py virtualenv_list py_list_packages
 #' @importFrom purrr map map_chr map_lgl flatten walk
-#' @importFrom methods new
+#' @importFrom methods new is
 #' @importFrom utils head
 #' @import rscontract
 #' @import dbplyr

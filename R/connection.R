@@ -52,7 +52,7 @@ spark_connect <- function(host,
       cluster_id = cluster_id,
       method = method,
       python = python,
-      con = simulate_hive()
+      con = structure(list(), class = c("Hive", "DBIConnection"))
     ),
     class = c("sparklyr2_connection", con_class, "DBIConnection")
   )
@@ -151,7 +151,10 @@ import_check <- function(x, virtualenv_name) {
     env_loaded <- virtualenv_python(virtualenv_name) == py_exe()
   }
 
-  inst <- " {.run sparklyr2::install_sparklyr2(virtualenv_name = \"{virtualenv_name}\")}"
+  inst <- paste0(
+    " {.run sparklyr2::install_sparklyr2(",
+    "virtualenv_name = \"{virtualenv_name}\")}"
+  )
 
   if (inherits(out, "try-error")) {
     if (env_found) {
@@ -173,7 +176,7 @@ import_check <- function(x, virtualenv_name) {
     } else {
       cli_abort(paste(
         "Pyhon library '{x}' not available. The '{virtualenv_name}'",
-        "virtual environment is not installed. Restart your R session",
+        "virtual environment is not installed. Restart your R session,",
         "and run:", inst
       ))
     }
