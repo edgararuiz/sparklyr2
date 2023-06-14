@@ -25,17 +25,8 @@ spark_connect <- function(host,
     }
   }
 
-  if(virtualenv_name %in% virtualenv_list()) {
-    try(use_virtualenv(virtualenv_name), silent = TRUE)
-  } else {
-    cli_abort(paste0(
-      "The '{virtualenv_name}' virtual environment was not found. To install use:",
-      " {.run sparklyr2::install_sparklyr2(virtualenv_name = \"{virtualenv_name}\")}"
-    ))
-  }
-
   if (method == "spark_connect") {
-    pyspark <- import("pyspark")
+    pyspark <- import_check("pyspark", virtualenv_name)
     pyspark_sql <- pyspark$sql
     remote <- pyspark_sql$SparkSession$builder$remote(host)
     python <- remote$getOrCreate()
@@ -44,7 +35,7 @@ spark_connect <- function(host,
   }
 
   if(method == "db_connect") {
-    db <- import("databricks.connect")
+    db <- import_check("databricks.connect", virtualenv_name)
     remote <- db$DatabricksSession$builder$remote(
       host = host,
       token = token,
@@ -137,4 +128,74 @@ print_connection <- function(x) {
       cli_li("{.val0 {cp}:} {.val1 {val_x}}")
     }
   }
+}
+
+import_check <- function(x, virtualenv_name) {
+
+  env_found <- virtualenv_name %in% virtualenv_list()
+
+  env_loaded <- NA
+
+  if(py_available()) {
+    if(env_found) {
+      if(virtualenv_python(virtualenv_name) == py_exe()) {
+        env_loaded <- TRUE
+      } else {
+        env_loaded <- FALSE
+      }
+    }
+  } else {
+    if(env_found) {
+      try(use_virtualenv(virtualenv_name), silent = TRUE)
+    }
+  }
+
+  out <- try(import(x), silent = TRUE)
+
+  if(is.na(env_loaded)) {
+    env_loaded <- virtualenv_python(virtualenv_name) == py_exe()
+    }
+
+  inst <- " {.run sparklyr2::install_sparklyr2(virtualenv_name = \"{virtualenv_name}\")}"
+
+  if(inherits(out, "try-error")) {
+    if(env_found) {
+      if(env_loaded) {
+        # found & loaded
+        cli_abort(paste(
+          "Pyhon library '{x}' is not available in the '{virtualenv_name}'",
+          "virtual environment. Install all of the needed python libraries",
+          "using:", inst
+        ))
+      } else {
+        cli_abort(paste(
+          "Pyhon library '{x}' is not available. The '{virtualenv_name}'",
+          "virtual environment is installed, but it is not loaded.",
+          "Restart your R session, and avoid initializing Python",
+          "before using `sparklyr2`"
+        ))
+      }
+    } else {
+      cli_abort(paste(
+        "Pyhon library '{x}' not available. The '{virtualenv_name}'",
+        "virtual environment is not installed. Restart your R session",
+        "and run:", inst
+      ))
+    }
+  } else {
+    if(is.null(sparklyr2_env$vars$python_init)) {
+      if(env_loaded) {
+        msg <- "Using the '{virtualenv_name}' virtual environment ({py_exe()})"
+        cli_alert_success(msg)
+      } else {
+        msg <- paste("Not using the '{virtualenv_name}' virtual environment",
+                     "for python. The current path is: {py_exe()}"
+                     )
+        cli_alert_danger(msg)
+      }
+      sparklyr2_env$vars$python_init <- 1
+    }
+  }
+
+  out
 }
